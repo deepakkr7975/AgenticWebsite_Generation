@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WebGen — Agentic Site Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #080810;
+    --surface: #0f0f1a;
+    --surface2: #14141f;
+    --border: rgba(255,255,255,0.07);
+    --border-hover: rgba(255,255,255,0.15);
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --accent: #6c63ff;
+    --accent2: #ff6584;
+    --green: #00d97e;
+    --amber: #ffb547;
+    --red: #ff4d6d;
+    --font-display: 'Syne', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-display);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(108,99,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(108,99,255,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Glow orb */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(ellipse, rgba(108,99,255,0.12) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* Header */
+  header {
+    padding: 40px 0 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .logo-text {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: white;
+  }
+
+  .logo-text span { color: var(--accent); }
+
+  .api-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 20px;
+  }
+
+  .api-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 0 0 56px;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(108,99,255,0.1);
+    border: 1px solid rgba(108,99,255,0.3);
+    color: #a89fff;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 20px;
+    margin-bottom: 24px;
+  }
+
+  .hero h1 {
+    font-size: clamp(36px, 5vw, 60px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    color: white;
+    margin-bottom: 16px;
+  }
+
+  .hero h1 .gradient {
+    background: linear-gradient(135deg, #6c63ff, #ff6584);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero p {
+    color: var(--muted);
+    font-size: 16px;
+    font-weight: 400;
+    font-family: var(--font-mono);
+    letter-spacing: -0.2px;
+  }
+
+  /* Main layout */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  @media (max-width: 800px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    transition: border-color 0.2s;
+  }
+
+  .card:hover { border-color: var(--border-hover); }
+
+  .card-title {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title::before {
+    content: '';
+    width: 3px;
+    height: 14px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  /* Form */
+  .form-group { margin-bottom: 16px; }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--muted);
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+
+  input, textarea, select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(108,99,255,0.15);
+  }
+
+  textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+
+  select option { background: var(--surface2); }
+
+  .iter-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  /* Generate button */
+  .btn-generate {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    letter-spacing: -0.3px;
+  }
+
+  .btn-generate:hover { background: #7c75ff; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(108,99,255,0.35); }
+  .btn-generate:active { transform: translateY(0); }
+  .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .btn-generate .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: none;
+  }
+
+  .btn-generate.loading .spinner { display: block; }
+  .btn-generate.loading .btn-text::after { content: '...'; animation: dots 1.2s steps(4,end) infinite; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes dots { 0%,20%{content:'.'} 40%{content:'..'} 60%,100%{content:'...'} }
+
+  /* Right panel */
+  .right-panel { display: flex; flex-direction: column; gap: 20px; }
+
+  /* Terminal */
+  .terminal {
+    background: #05050d;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .terminal-bar {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+  }
+
+  .terminal-dots { display: flex; gap: 6px; }
+  .terminal-dots span {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .terminal-dots span:nth-child(1) { background: #ff5f57; }
+  .terminal-dots span:nth-child(2) { background: #febc2e; }
+  .terminal-dots span:nth-child(3) { background: #28c840; }
+
+  .terminal-title {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--muted);
+    margin-left: 8px;
+  }
+
+  .terminal-status {
+    margin-left: auto;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+
+  .terminal-status.idle { background: rgba(107,107,128,0.2); color: var(--muted); }
+  .terminal-status.running { background: rgba(255,181,71,0.15); color: var(--amber); }
+  .terminal-status.done { background: rgba(0,217,126,0.15); color: var(--green); }
+  .terminal-status.failed { background: rgba(255,77,109,0.15); color: var(--red); }
+
+  .terminal-body {
+    padding: 16px;
+    height: 280px;
+    overflow-y: auto;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.7;
+    scrollbar-width: thin;
+    scrollbar-color: #222 transparent;
+  }
+
+  .terminal-body::-webkit-scrollbar { width: 4px; }
+  .terminal-body::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
+
+  .log-line { padding: 1px 0; }
+  .log-line.info { color: #8888aa; }
+  .log-line.success { color: var(--green); }
+  .log-line.error { color: var(--red); }
+  .log-line.step { color: var(--accent); font-weight: 500; }
+  .log-line.score { color: var(--amber); font-weight: 500; }
+
+  .terminal-empty {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 8px;
+    opacity: 0.5;
+  }
+
+  .terminal-empty .big { font-size: 28px; }
+
+  /* Score card */
+  .score-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 24px;
+    display: none;
+  }
+
+  .score-card.visible { display: block; }
+
+  .score-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .score-label {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .score-value {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--green);
+    letter-spacing: -1px;
+  }
+
+  .score-bar-bg {
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .score-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--green));
+    border-radius: 3px;
+    transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+    width: 0%;
+  }
+
+  /* History */
+  .history-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .history-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .history-item:hover { border-color: var(--border-hover); background: var(--surface); }
+
+  .history-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .history-status-dot.done { background: var(--green); }
+  .history-status-dot.running { background: var(--amber); animation: pulse 1s infinite; }
+  .history-status-dot.failed { background: var(--red); }
+  .history-status-dot.queued { background: var(--muted); }
+
+  .history-info { flex: 1; min-width: 0; }
+
+  .history-req {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 3px;
+  }
+
+  .history-meta {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--muted);
+  }
+
+  .history-score {
+    font-size: 13px;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--green);
+    flex-shrink: 0;
+  }
+
+  .history-score.failed { color: var(--red); }
+
+  .history-empty {
+    text-align: center;
+    padding: 32px;
+    color: var(--muted);
+    font-size: 13px;
+    font-family: var(--font-mono);
+  }
+
+  /* Output path */
+  .output-path {
+    display: none;
+    background: rgba(0,217,126,0.05);
+    border: 1px solid rgba(0,217,126,0.2);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  .output-path.visible { display: block; }
+
+  .output-path-label {
+    color: var(--green);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+
+  .output-path-cmd {
+    color: var(--text);
+    line-height: 1.8;
+  }
+
+  .output-path-cmd .cmd { color: #a89fff; }
+
+  /* Fade in animation */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade-up { animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) both; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-text">Web<span>Gen</span></div>
+    </div>
+    <div class="api-status">
+      <div class="api-dot"></div>
+      Gemini API connected
+    </div>
+  </header>
+
+  <div class="hero fade-up">
+    <div class="hero-badge">⚙ Agentic Pipeline v1.0</div>
+    <h1>Generate websites<br/>with <span class="gradient">AI agents</span></h1>
+    <p>Describe it. Reference it. Ship it.</p>
+  </div>
+
+  <div class="main-grid">
+
+    <!-- LEFT: Form -->
+    <div class="card fade-up" style="animation-delay:0.1s">
+      <div class="card-title">New generation</div>
+
+      <div class="form-group">
+        <label>What do you want to build?</label>
+        <textarea id="requirement" placeholder="e.g. A portfolio site for a product designer with dark aesthetic, projects gallery, about and contact page"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Reference site URL (optional)</label>
+        <input id="reference_site" type="url" placeholder="https://stripe.com"/>
+      </div>
+
+      <div class="iter-row">
+        <div class="form-group">
+          <label>Project name</label>
+          <input id="output_name" type="text" placeholder="my-portfolio"/>
+        </div>
+        <div class="form-group">
+          <label>Iterations</label>
+          <select id="max_iterations">
+            <option value="1">1 — Fast</option>
+            <option value="2" selected>2 — Balanced</option>
+            <option value="3">3 — Best quality</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-generate" id="generateBtn" onclick="startGeneration()">
+        <div class="spinner"></div>
+        <span class="btn-text">Generate site</span>
+        <span>→</span>
+      </button>
+
+      <!-- Output path after done -->
+      <div class="output-path" id="outputPath">
+        <div class="output-path-label">✓ Site ready — run it:</div>
+        <div class="output-path-cmd" id="outputPathCmd"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Terminal + Score + History -->
+    <div class="right-panel">
+
+      <!-- Terminal -->
+      <div class="terminal fade-up" style="animation-delay:0.15s">
+        <div class="terminal-bar">
+          <div class="terminal-dots">
+            <span></span><span></span><span></span>
+          </div>
+          <div class="terminal-title">pipeline output</div>
+          <div class="terminal-status idle" id="terminalStatus">idle</div>
+        </div>
+        <div class="terminal-body" id="terminalBody">
+          <div class="terminal-empty">
+            <div class="big">⚡</div>
+            <div>Waiting for generation...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Score card -->
+      <div class="score-card" id="scoreCard">
+        <div class="card-title">Similarity score</div>
+        <div class="score-row">
+          <div class="score-label">Final score</div>
+          <div class="score-value" id="scoreValue">—</div>
+        </div>
+        <div class="score-bar-bg">
+          <div class="score-bar-fill" id="scoreBar"></div>
+        </div>
+      </div>
+
+      <!-- History -->
+      <div class="card fade-up" style="animation-delay:0.2s">
+        <div class="card-title">Generation history</div>
+        <div class="history-list" id="historyList">
+          <div class="history-empty">No generations yet</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = 'http://localhost:8080/api';
+  let currentJobId = null;
+  let eventSource = null;
+
+  async function startGeneration() {
+    const requirement = document.getElementById('requirement').value.trim();
+    const reference_site = document.getElementById('reference_site').value.trim();
+    const max_iterations = document.getElementById('max_iterations').value;
+    const output_name = document.getElementById('output_name').value.trim() || `site-${Date.now()}`;
+
+    if (!requirement) {
+      document.getElementById('requirement').focus();
+      document.getElementById('requirement').style.borderColor = '#ff4d6d';
+      setTimeout(() => document.getElementById('requirement').style.borderColor = '', 2000);
+      return;
+    }
+
+    // UI: loading state
+    const btn = document.getElementById('generateBtn');
+    btn.classList.add('loading');
+    btn.disabled = true;
+    document.getElementById('outputPath').classList.remove('visible');
+    document.getElementById('scoreCard').classList.remove('visible');
+
+    // Clear terminal
+    setTerminalStatus('running');
+    clearTerminal();
+    addLog('🚀 Starting pipeline...', 'step');
+    addLog(`   Requirement: ${requirement}`, 'info');
+    if (reference_site) addLog(`   Reference: ${reference_site}`, 'info');
+    addLog('', 'info');
+
+    try {
+      const res = await fetch(`${API}/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requirement, reference_site, max_iterations, output_name })
+      });
+      const data = await res.json();
+
+      if (data.error) {
+        addLog(`❌ Error: ${data.error}`, 'error');
+        setTerminalStatus('failed');
+        resetBtn();
+        return;
+      }
+
+      currentJobId = data.job_id;
+      streamLogs(data.job_id);
+      pollHistory();
+
+    } catch (e) {
+      addLog(`❌ Could not connect to server. Is server.py running?`, 'error');
+      addLog(`   Run: python server.py`, 'info');
+      setTerminalStatus('failed');
+      resetBtn();
+    }
+  }
+
+  function streamLogs(jobId) {
+    if (eventSource) eventSource.close();
+    eventSource = new EventSource(`${API}/jobs/${jobId}/logs`);
+
+    eventSource.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+
+      if (data.log) {
+        const line = data.log;
+        let type = 'info';
+        if (line.includes('✅') || line.includes('COMPLETE') || line.includes('Accepted')) type = 'success';
+        else if (line.includes('❌') || line.includes('ERROR') || line.includes('failed')) type = 'error';
+        else if (line.includes('Step') || line.includes('🤖') || line.includes('🔍') || line.includes('⚙️') || line.includes('🌐')) type = 'step';
+        else if (line.includes('Score') || line.includes('score')) type = 'score';
+        addLog(line, type);
+      }
+
+      if (data.status) {
+        setTerminalStatus(data.status);
+        resetBtn();
+        eventSource.close();
+
+        if (data.status === 'done') {
+          if (data.score !== null && data.score !== undefined) {
+            showScore(data.score);
+          }
+          if (data.output_dir) {
+            showOutputPath(data.output_dir);
+          }
+        }
+        pollHistory();
+      }
+    };
+
+    eventSource.onerror = () => {
+      eventSource.close();
+      resetBtn();
+    };
+  }
+
+  function showScore(score) {
+    const card = document.getElementById('scoreCard');
+    card.classList.add('visible');
+    document.getElementById('scoreValue').textContent = `${Math.round(score * 100)}%`;
+    setTimeout(() => {
+      document.getElementById('scoreBar').style.width = `${score * 100}%`;
+    }, 100);
+  }
+
+  function showOutputPath(outputDir) {
+    const el = document.getElementById('outputPath');
+    el.classList.add('visible');
+    document.getElementById('outputPathCmd').innerHTML = `
+      <span class="cmd">cd</span> ${outputDir}<br/>
+      <span class="cmd">npm install</span><br/>
+      <span class="cmd">npm run dev</span><br/>
+      → http://localhost:3000
+    `;
+  }
+
+  async function pollHistory() {
+    try {
+      const res = await fetch(`${API}/jobs`);
+      const jobs = await res.json();
+      renderHistory(jobs);
+    } catch (e) {}
+  }
+
+  function renderHistory(jobs) {
+    const el = document.getElementById('historyList');
+    if (!jobs.length) {
+      el.innerHTML = '<div class="history-empty">No generations yet</div>';
+      return;
+    }
+    el.innerHTML = jobs.map(job => `
+      <div class="history-item" onclick="loadJob('${job.id}')">
+        <div class="history-status-dot ${job.status}"></div>
+        <div class="history-info">
+          <div class="history-req">${job.requirement}</div>
+          <div class="history-meta">${job.output_name} · ${job.max_iterations} iter · ${timeAgo(job.created_at)}</div>
+        </div>
+        <div class="history-score ${job.status === 'failed' ? 'failed' : ''}">
+          ${job.score !== null && job.score !== undefined ? Math.round(job.score * 100) + '%' : job.status === 'failed' ? '✗' : job.status === 'running' ? '…' : '—'}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function loadJob(jobId) {
+    try {
+      const res = await fetch(`${API}/jobs/${jobId}`);
+      const job = await res.json();
+      clearTerminal();
+      setTerminalStatus(job.status);
+      job.logs.forEach(line => {
+        let type = 'info';
+        if (line.includes('✅') || line.includes('COMPLETE')) type = 'success';
+        else if (line.includes('❌') || line.includes('ERROR')) type = 'error';
+        else if (line.includes('Step') || line.includes('🤖')) type = 'step';
+        else if (line.includes('Score') || line.includes('score')) type = 'score';
+        addLog(line, type);
+      });
+      if (job.score !== null && job.score !== undefined) showScore(job.score);
+      if (job.output_dir) showOutputPath(job.output_dir);
+    } catch (e) {}
+  }
+
+  function clearTerminal() {
+    document.getElementById('terminalBody').innerHTML = '';
+  }
+
+  function addLog(text, type = 'info') {
+    const body = document.getElementById('terminalBody');
+    const line = document.createElement('div');
+    line.className = `log-line ${type}`;
+    line.textContent = text;
+    body.appendChild(line);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function setTerminalStatus(status) {
+    const el = document.getElementById('terminalStatus');
+    el.className = `terminal-status ${status}`;
+    el.textContent = status;
+  }
+
+  function resetBtn() {
+    const btn = document.getElementById('generateBtn');
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+
+  function timeAgo(ts) {
+    const diff = Math.floor(Date.now() / 1000 - ts);
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+    return `${Math.floor(diff/3600)}h ago`;
+  }
+
+  // Poll history every 3s when a job is running
+  setInterval(() => {
+    if (currentJobId) pollHistory();
+  }, 3000);
+
+  // Initial history load
+  pollHistory();
+</script>
+</body>
+</html>
